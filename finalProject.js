@@ -1,3 +1,8 @@
+let stage = 1;
+let pulseAmount = 0;
+let stars = [];
+let numStars = 150;
+
 let soul1, soul2;
 let velocity1, velocity2;
 let accel1, accel2;
@@ -11,14 +16,39 @@ function setup() {
 
   velocity1 = createVector(random(-5, 5), random(-1.5, 1.5));
   velocity2 = createVector(random(-5, 5), random(-1.5, 1.5));
+
+  for (let i = 0; i < numStars; i++) {
+    stars.push({
+      x: random(width),
+      y: random(height),
+      size: random(1, 3),
+    });
+  }
 }
 
 function draw() {
-  background(0);
+  if (stage === 1) {
+    background(0);
+    drawStage1();
+  }
+}
+
+function drawStage1() {
+  for (let s of stars) {
+    fill(brightness);
+    circle(s.x, s.y, s.size);
+  }
 
   updateSouls();
-  drawSoul(soul1, 200);
-  drawSoul(soul2, 330);
+
+  pulseAmount = map(sin(frameCount * 0.1), -1, 1, 0.8, 1.2);
+  drawSoul(soul1, 200, pulseAmount);
+  drawSoul(soul2, 330, pulseAmount);
+
+  fill(0, 0, 100);
+  textAlign(CENTER);
+  textSize(20);
+  text("Stage 1: Two souls wander... 🥺 (Press 2)", width / 2, 40);
 }
 
 function drawSoul(pos, hue, pulse = 1) {
