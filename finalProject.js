@@ -35,7 +35,7 @@ function draw() {
 
 function drawStage1() {
   for (let s of stars) {
-    fill(brightness);
+    fill(155);
     circle(s.x, s.y, s.size);
   }
 
