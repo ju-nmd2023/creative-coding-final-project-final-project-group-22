@@ -30,6 +30,9 @@ function draw() {
   if (stage === 1) {
     background(0);
     drawStage1();
+  } else if (stage === 2) {
+    background(0, 0.1);
+    drawStage2();
   }
 }
 
@@ -49,6 +52,43 @@ function drawStage1() {
   textAlign(CENTER);
   textSize(20);
   text("Stage 1: Two souls wander... 🥺 (Press 2)", width / 2, 40);
+}
+
+function drawStage2() {
+  for (let i = 0; i < numFlows; i++) drawFlow(i);
+  t += 0.005;
+
+  updateSouls();
+  drawSoul(soul1, 200);
+  drawSoul(soul2, 330);
+
+  stroke(0, 0, 100, 0.2);
+  strokeWeight(10);
+  line(soul1.x, soul1.y, soul2.x, soul2.y);
+
+  stroke(0, 0, 100, 1);
+  strokeWeight(3);
+  line(soul1.x, soul1.y, soul2.x, soul2.y);
+
+  noStroke();
+
+  fill(0, 0, 100);
+  textAlign(CENTER);
+  textSize(20);
+  text("A connection grows...✨ (Press 3)", width / 2, 40);
+}
+
+function drawFlow(index) {
+  let baseY = height / 2 + index * 30 - 30;
+  stroke(330, 80, 100, 0.5);
+  strokeWeight(3);
+  noFill();
+  beginShape();
+  for (let x = 0; x < width; x += 8) {
+    let y = baseY + map(noise(x * 0.005, t + index * 10), 0, 1, -150, 150);
+    vertex(x, y);
+  }
+  endShape();
 }
 
 function drawSoul(pos, hue, pulse = 1) {
