@@ -7,6 +7,10 @@ let soul1, soul2;
 let velocity1, velocity2;
 let accel1, accel2;
 
+let t = 0;
+let numFlows = 8;
+let fragments = [];
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
   colorMode(HSB, 360, 100, 100, 1);
@@ -22,6 +26,15 @@ function setup() {
       x: random(width),
       y: random(height),
       size: random(1, 3),
+    });
+  }
+  for (let i = 0; i < 150; i++) {
+    fragments.push({
+      x: random(width),
+      y: random(-height, 0),
+      size: random(8, 20),
+      speed: random(1, 3),
+      hue: random(320, 360),
     });
   }
 }
@@ -78,6 +91,36 @@ function drawStage2() {
   text("A connection grows...✨ (Press 3)", width / 2, 40);
 }
 
+function drawStage3() {
+  for (let f of fragments) {
+    fill(f.hue, 80, 100, 0.6);
+    ellipse(f.x, f.y, f.size, f.size);
+    f.y += f.speed;
+    if (f.y > height) {
+      f.y = -f.size;
+      f.x = random(width);
+    }
+  }
+
+  let step = 0.5;
+  let direction = p5.Vector.sub(soul2, soul1).mult(step * 0.01);
+  soul1.add(direction);
+  soul2.sub(direction);
+
+  let midX = (soul1.x + soul2.x) / 2;
+  let midY = (soul1.y + soul2.y) / 2;
+  fill(330, 90, 100, 0.2);
+  ellipse(midX, midY, 200 + sin(frameCount * 0.1) * 20);
+
+  drawSoul(soul1, 200);
+  drawSoul(soul2, 330);
+
+  fill(0, 0, 100);
+  textAlign(CENTER);
+  textSize(20);
+  text("Stage 3: They fall in love ❤️", width / 2, 40);
+}
+
 function drawFlow(index) {
   let baseY = height / 2 + index * 30 - 30;
   stroke(330, 80, 100, 0.5);
@@ -117,6 +160,15 @@ function updateSouls() {
   if (soul1.y > height || soul1.y < 0) velocity1.y *= -1;
   if (soul2.x > width || soul2.x < 0) velocity2.x *= -1;
   if (soul2.y > height || soul2.y < 0) velocity2.y *= -1;
+}
+
+function keyPressed() {
+  if (key === "1") {
+    stage = 1;
+  }
+  if (key === "2") {
+    stage = 2;
+  }
 }
 
 function windowResized() {
