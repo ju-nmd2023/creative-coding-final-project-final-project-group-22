@@ -11,6 +11,15 @@ let t = 0;
 let numFlows = 8;
 let fragments = [];
 
+let heartbeat, fallinginlove, inlove;
+
+//sound
+function preload() {
+  heartbeat = loadSound("heartbeat.mp3");
+  fallinginlove = loadSound("fallinginlove.mp3");
+  inlove = loadSound("inlove.mp3");
+}
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
   colorMode(HSB, 360, 100, 100, 1);
@@ -18,16 +27,11 @@ function setup() {
   soul1 = createVector(width * 0.2, height * 0.5);
   soul2 = createVector(width * 0.8, height * 0.5);
 
+  //slow movement to avoid immediate touching
   velocity1 = createVector(random(-5, 5), random(-1.5, 1.5));
   velocity2 = createVector(random(-5, 5), random(-1.5, 1.5));
 
-  for (let i = 0; i < numStars; i++) {
-    stars.push({
-      x: random(width),
-      y: random(height),
-      size: random(1, 3),
-    });
-  }
+  //for stage 3, background fragments
   for (let i = 0; i < 150; i++) {
     fragments.push({
       x: random(width),
@@ -37,6 +41,18 @@ function setup() {
       hue: random(320, 360),
     });
   }
+
+  //stars for stage 1
+  for (let i = 0; i < numStars; i++) {
+    stars.push({
+      x: random(width),
+      y: random(height),
+      size: random(1, 3),
+    });
+  }
+
+  //lay the first stage music automatically
+  heartbeat.loop();
 }
 
 function draw() {
@@ -46,12 +62,18 @@ function draw() {
   } else if (stage === 2) {
     background(0, 0.1);
     drawStage2();
+  } else if (stage === 3) {
+    background(0);
+    drawStage3();
   }
 }
 
+//*** stage 1 ***
 function drawStage1() {
+  noStroke();
   for (let s of stars) {
-    fill(155);
+    let brightness = map(sin(frameCount * 0.02), -1, 1, 60, 100);
+    fill(0, 0, brightness);
     circle(s.x, s.y, s.size);
   }
 
@@ -64,9 +86,10 @@ function drawStage1() {
   fill(0, 0, 100);
   textAlign(CENTER);
   textSize(20);
-  text("Stage 1: Two souls wander... 🥺 (Press 2)", width / 2, 40);
+  text("Two souls wander... 🥺 (Press 2)", width / 2, 40);
 }
 
+//*** stage 2 ***
 function drawStage2() {
   for (let i = 0; i < numFlows; i++) drawFlow(i);
   t += 0.005;
@@ -91,6 +114,7 @@ function drawStage2() {
   text("A connection grows...✨ (Press 3)", width / 2, 40);
 }
 
+//*** stage 3 ***
 function drawStage3() {
   for (let f of fragments) {
     fill(f.hue, 80, 100, 0.6);
@@ -102,15 +126,22 @@ function drawStage3() {
     }
   }
 
-  let step = 0.5;
-  let direction = p5.Vector.sub(soul2, soul1).mult(step * 0.01);
+  let direction = p5.Vector.sub(soul2, soul1).mult(0.005);
   soul1.add(direction);
   soul2.sub(direction);
 
+  //calculate midpoint for glow
   let midX = (soul1.x + soul2.x) / 2;
   let midY = (soul1.y + soul2.y) / 2;
-  fill(330, 90, 100, 0.2);
-  ellipse(midX, midY, 200 + sin(frameCount * 0.1) * 20);
+
+  //draw multiple ellipses for more effect in stage 3
+  noStroke();
+  for (let i = 0; i < 5; i++) {
+    let size = 200 + i * 30 + sin(frameCount * 0.1) * 20;
+    let alpha = 0.15 - i * 0.02;
+    fill(330, 90, 100, alpha);
+    ellipse(midX, midY, size);
+  }
 
   drawSoul(soul1, 200);
   drawSoul(soul2, 330);
@@ -118,7 +149,7 @@ function drawStage3() {
   fill(0, 0, 100);
   textAlign(CENTER);
   textSize(20);
-  text("Stage 3: They fall in love ❤️", width / 2, 40);
+  text("...and they fell in love ❤️", width / 2, 40);
 }
 
 function drawFlow(index) {
@@ -150,6 +181,21 @@ function updateSouls() {
   accel1 = p5.Vector.sub(mouse, soul1).normalize().mult(0.5);
   accel2 = p5.Vector.sub(mouse, soul2).normalize().mult(0.5);
 
+  //prevent souls from touching - Help: https://chatgpt.com/share/68f13e09-11d4-800e-8b5b-3332c49a7218
+  let diff = p5.Vector.sub(soul1, soul2);
+  let distance = diff.mag();
+  let minDistance = 140;
+
+  if (distance < minDistance) {
+    // direction to push them apart
+    let push = diff
+      .copy()
+      .normalize()
+      .mult((minDistance - distance) * 0.05);
+    velocity1.add(push);
+    velocity2.sub(push);
+  }
+
   velocity1.add(accel1).limit(8);
   velocity2.add(accel2).limit(8);
 
@@ -165,9 +211,21 @@ function updateSouls() {
 function keyPressed() {
   if (key === "1") {
     stage = 1;
+    fallinginlove.stop();
+    inlove.stop();
+    heartbeat.loop();
   }
   if (key === "2") {
     stage = 2;
+    heartbeat.stop();
+    inlove.stop();
+    fallinginlove.loop();
+  }
+  if (key === "3") {
+    stage = 3;
+    heartbeat.stop();
+    fallinginlove.stop();
+    inlove.loop();
   }
 }
 
